@@ -190,23 +190,53 @@ function closePanel() {
 }
 const note = (id, msg, err = false) => { const el = $(id); if (el) { el.className = "note" + (err ? " err" : ""); el.innerHTML = msg; } };
 
-/* sign in (magic link) */
-function openSignIn() {
+/* sign in / create account (email + password) */
+function openSignIn(mode = "in") {
   S.openId = null;
-  openPanel("Sign in", `
-    <p class="note">Enter your email and we'll send you a sign-in link. No password.</p>
-    <label class="f">Name (what friends see)<input class="i" id="si_name" autocomplete="name" placeholder="Polina"></label>
+  const isNew = mode === "new";
+  openPanel(isNew ? "Create account" : "Sign in", `
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabIn" aria-selected="${!isNew}">Sign in</button>
+      <button role="tab" id="tabNew" aria-selected="${isNew}">Create account</button>
+    </div>
+    ${isNew ? `<label class="f">Name (what friends see)<input class="i" id="si_name" autocomplete="name" placeholder="Polina"></label>` : ""}
     <label class="f">Email<input class="i" id="si_email" type="email" autocomplete="email" placeholder="you@email.com"></label>
-    <div class="actions"><button class="btn primary" id="si_go">Send link</button><span class="note" id="si_note"></span></div>`);
-  $("#si_go").onclick = async () => {
-    const email = $("#si_email").value.trim(), name = $("#si_name").value.trim();
+    <label class="f">Password<input class="i" id="si_pw" type="password" autocomplete="${isNew ? "new-password" : "current-password"}" placeholder="${isNew ? "At least 8 characters" : ""}"></label>
+    <div class="actions"><button class="btn primary" id="si_go">${isNew ? "Create account" : "Sign in"}</button><span class="note" id="si_note"></span></div>`);
+  $("#tabIn").onclick = () => openSignIn("in");
+  $("#tabNew").onclick = () => openSignIn("new");
+  const go = async () => {
+    const email = $("#si_email").value.trim(), password = $("#si_pw").value;
     if (!/^\S+@\S+\.\S+$/.test(email)) return note("#si_note", "Enter a real email.", true);
-    $("#si_go").disabled = true; note("#si_note", `<span class="spin"></span>Sending…`);
-    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin, data: name ? { name } : undefined } });
+    if (password.length < (isNew ? 8 : 1)) return note("#si_note", isNew ? "Password needs at least 8 characters." : "Enter your password.", true);
+    $("#si_go").disabled = true; note("#si_note", `<span class="spin"></span>${isNew ? "Creating…" : "Signing in…"}`);
+    let res;
+    if (isNew) {
+      const name = ($("#si_name")?.value || "").trim();
+      res = await sb.auth.signUp({ email, password, options: { data: name ? { name } : {} } });
+    } else {
+      res = await sb.auth.signInWithPassword({ email, password });
+    }
     $("#si_go").disabled = false;
-    if (error) note("#si_note", error.status === 429 ? "Too many tries. Wait a minute and try again." : "Couldn't send the link. Try again.", true);
-    else note("#si_note", `<span class="ok">Check your email</span> and tap the link on this device.`);
+    const { data, error } = res;
+    if (error) {
+      const m = (error.message || "").toLowerCase();
+      return note("#si_note",
+        m.includes("invalid login") ? "Wrong email or password."
+        : m.includes("already registered") ? "That email already has an account. Sign in instead."
+        : m.includes("not confirmed") ? "This account still needs email confirmation. Ask Polina to confirm it."
+        : error.status === 429 ? "Too many tries. Wait a minute."
+        : "Couldn't do that. Try again.", true);
+    }
+    if (isNew && data?.user && !data.session) {
+      return note("#si_note", (data.user.identities || []).length === 0
+        ? "That email already has an account. Sign in instead."
+        : "Account made, but it needs email confirmation before you can sign in.", true);
+    }
+    closePanel();
   };
+  $("#si_go").onclick = go;
+  $("#si_pw").addEventListener("keydown", e => { if (e.key === "Enter") go(); });
 }
 
 /* editor code */
