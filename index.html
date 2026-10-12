@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Afters · Chicago Rave Calendar</title>
+<meta name="description" content="Raves we're hitting in Chicago. Tap I'm going.">
+<meta name="theme-color" content="#130f17">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23130f17'/%3E%3Ctext x='16' y='23' font-family='Impact,sans-serif' font-size='20' fill='%23ffb547' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Aft<span>e</span>rs</h1>
+      <p>Raves we're hitting · Chicago</p>
+    </div>
+    <div class="controls">
+      <div class="who" id="who"></div>
+      <div class="monthnav">
+        <button id="prev" aria-label="Previous month">‹</button>
+        <div class="label" id="mlabel"></div>
+        <button id="next" aria-label="Next month">›</button>
+      </div>
+      <button class="btn ghost" id="todayBtn">Today</button>
+      <button class="btn primary" id="addBtn" hidden>+ Add a rave</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <section class="cal" aria-label="Month calendar">
+      <div class="dow" id="dow"></div>
+      <div class="days" id="days"></div>
+    </section>
+    <section class="agenda">
+      <div class="agenda-head">
+        <h2 id="aTitle">Coming up</h2>
+        <button id="clearSel" hidden>Show whole month</button>
+      </div>
+      <div class="list" id="list"></div>
+      <div class="status" id="status"></div>
+    </section>
+  </div>
+  <p class="foot">Afters · made for the Chicago crew</p>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="panel" id="panel" hidden aria-modal="true" role="dialog" aria-labelledby="pTitle">
+  <div class="panel-head">
+    <h2 id="pTitle"></h2>
+    <button class="x" id="closeP" aria-label="Close">×</button>
+  </div>
+  <div class="panel-body" id="pBody"></div>
+</aside>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
